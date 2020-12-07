@@ -65,7 +65,7 @@ public class $[name]Block extends Block {
 /*
 ====== Code to move to your registration event class ======
 
-public static RegistryObject<$[name]Block> $U[name] = BLOCKS.register("$L[name]", $[name]Block::new);
-public static RegistryObject<BlockItem> $U[name]_BLOCKITEM = ITEMS.register("$L[name]", () -> new BlockItem($U[name].get(), new Properties()));
+public static final RegistryObject<$[name]Block> $U[name] = BLOCKS.register("$L[name]", $[name]Block::new);
+public static final RegistryObject<BlockItem> $U[name]_BLOCKITEM = ITEMS.register("$L[name]", () -> new BlockItem($U[name].get(), new Properties()));
 */
 '''
