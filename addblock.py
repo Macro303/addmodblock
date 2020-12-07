@@ -1,23 +1,24 @@
-from typing import Dict, Any
-from argparse import ArgumentParser
-from pathlib import Path
 import json
+from argparse import ArgumentParser
+from configparser import ConfigParser
+from pathlib import Path
+from typing import Dict, Any, Optional
 
 #################################################################################
-# CONFIG
+# Config
 #################################################################################
-MODID_REF = 'RFToolsStorage.MODID'
-MODID = 'rftoolsstorage'
-
-ROOT_PACKAGE = 'mcjty.rftoolsstorage'
-SOURCE_ROOT = Path('src/main/java/mcjty/rftoolsstorage')
-ASSET_RESOURCE_ROOT = Path('src/main/resources/assets/rftoolsstorage')
-DATA_RESOURCE_ROOT = Path('src/main/resources/data/rftoolsstorage')
-
-PACKAGE_BLOCKS = 'blocks'
-PACKAGE_TILES = 'tiles'
-PACKAGE_CONTAINERS = 'containers'
-PACKAGE_SCREENS = 'screens'
+config = ConfigParser()
+config.read('config.ini')
+MODID_REF = config['ModID']['ModID Ref']
+MODID = config['ModID']['ModID']
+ROOT_PACKAGE = config['Root Paths']['Package']
+SOURCE_ROOT = Path(config['Root Paths']['Source'])
+ASSET_RESOURCE_ROOT = Path(config['Root Paths']['Assets'])
+DATA_RESOURCE_ROOT = Path(config['Root Paths']['Data'])
+PACKAGE_BLOCKS = config['Packages']['Blocks']
+PACKAGE_TILES = config['Packages']['Tiles']
+PACKAGE_CONTAINERS = config['Packages']['Containers']
+PACKAGE_SCREENS = config['Packages']['Screens']
 #################################################################################
 #################################################################################
 # Templates
@@ -372,8 +373,10 @@ TEMPLATE_RECIPE_JSON = '''
 }
 '''
 #################################################################################
-def generate(template: str, inputs: Dict[str, str], conditionals: Dict[str, bool] = {}) -> Dict[str, Any]:
-    for cond_name, conditional in conditionals.items():
+
+
+def generate(template: str, inputs: Dict[str, str], conditionals: Optional[Dict[str, Any]] = None) -> str:
+    for cond_name, conditional in (conditionals or {}).items():
         lines = template.splitlines()
         gen = True
         newlines = []
@@ -393,7 +396,8 @@ def generate(template: str, inputs: Dict[str, str], conditionals: Dict[str, bool
         template = template.replace(f"$L[{inp}]", val.lower())
     return template.strip()
 
-def add_templated_java(package: str, name: str, suffix: str, force: bool, template: str, conditionals: Dict[str, bool] = {}):
+
+def add_templated_java(package: str, name: str, suffix: str, force: bool, template: str, conditionals: Optional[Dict[str, Any]] = None):
     path = SOURCE_ROOT
     for folder in package.split('.'):
         path = path.joinpath(folder)
@@ -412,6 +416,7 @@ def add_templated_java(package: str, name: str, suffix: str, force: bool, templa
                 'name': name
             }, conditionals=conditionals))
 
+
 def add_templated_json(path: Path, package: str, name: str, force: bool, template: str):
     for folder in package.split('.'):
         path = path.joinpath(folder)
@@ -428,6 +433,7 @@ def add_templated_json(path: Path, package: str, name: str, force: bool, templat
                 "name": name
             })), outfile, indent=2, sort_keys=True)
 
+
 def add_block(name: str, force: bool, gui: bool, tile: bool, no_json: bool):
     conditionals = {
         'gui': gui,
@@ -440,11 +446,12 @@ def add_block(name: str, force: bool, gui: bool, tile: bool, no_json: bool):
     if tile:
         add_templated_java(package=PACKAGE_TILES, name=name, suffix='Tile', force=force, template=TEMPLATE_TILE_JAVA, conditionals=conditionals)
     if not no_json:
-        add_templated_json(path = ASSET_RESOURCE_ROOT, package='blockstates', name=name, force=force, template=TEMPLATE_BLOCKSTATE_JSON)
-        add_templated_json(path = ASSET_RESOURCE_ROOT, package='models.block', name=name, force=force, template=TEMPLATE_BLOCKMODEL_JSON)
+        add_templated_json(path=ASSET_RESOURCE_ROOT, package='blockstates', name=name, force=force, template=TEMPLATE_BLOCKSTATE_JSON)
+        add_templated_json(path=ASSET_RESOURCE_ROOT, package='models.block', name=name, force=force, template=TEMPLATE_BLOCKMODEL_JSON)
         add_templated_json(path=ASSET_RESOURCE_ROOT, package='models.item', name=name, force=force, template=TEMPLATE_ITEMMODEL_JSON)
         add_templated_json(path=DATA_RESOURCE_ROOT, package='loot_tables.blocks', name=name, force=force, template=TEMPLATE_LOOTTABLE_JSON)
         add_templated_json(path=DATA_RESOURCE_ROOT, package='recipes', name=name, force=force, template=TEMPLATE_RECIPE_JSON)
+
 
 if __name__ == '__main__':
     parser = ArgumentParser(description='Make a Block')
