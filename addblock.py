@@ -1,49 +1,29 @@
-import argparse
-import os
+from typing import Dict, Any
+from argparse import ArgumentParser
+from pathlib import Path
+import json
 
 #################################################################################
-# Configuration section. Modify this to suit your mod. Run this python script
-# from within the root of your mod project. Directories in this configuration
-# are relative to that root
-
-# This is the string that represents a reference to your modid. You can also
-# use a string here but it is usually better to have some constant somewhere
+# CONFIG
+#################################################################################
 MODID_REF = 'RFToolsStorage.MODID'
-
-# This is the actual modid as used in json for example
 MODID = 'rftoolsstorage'
 
-# The root package of your mod
 ROOT_PACKAGE = 'mcjty.rftoolsstorage'
+SOURCE_ROOT = Path('src/main/java/mcjty/rftoolsstorage')
+ASSET_RESOURCE_ROOT = Path('src/main/resources/assets/rftoolsstorage')
+DATA_RESOURCE_ROOT = Path('src/main/resources/data/rftoolsstorage')
 
-# The relative path to the mod root (where your main mod file is located)
-SOURCE_ROOT = 'RFToolsStorage/src/main/java/mcjty/rftoolsstorage'
-# The relative path to the root of your asset resources
-ASSET_RESOURCE_ROOT = 'RFToolsStorage/src/main/resources/assets/rftoolsstorage'
-# The relative path to the root of your data resources
-DATA_RESOURCE_ROOT = 'RFToolsStorage/src/main/resources/data/rftoolsstorage'
-
-# Package where you want to generate code. These can be the same in case you
-# want to generate all in the same package but you can also separate it
 PACKAGE_BLOCKS = 'blocks'
-PACKAGE_TILES = 'blocks'
-PACKAGE_CONTAINERS = 'blocks'
-PACKAGE_SCREENS = 'blocks'
-
+PACKAGE_TILES = 'tiles'
+PACKAGE_CONTAINERS = 'containers'
+PACKAGE_SCREENS = 'screens'
 #################################################################################
-# Template section. You can modify these if you want to personalize how code
-# is generated. ${xxx} are input parameters. $U{xxx} will generate an uppercase
-# version of the input. $L{xxx} a lowercase version. The following parameters
-# are given to the templates:
-#      - modid_ref (contains the value of MODID_REF above)
-#      - modid (contains the value of MODID above)
-#      - name (contains the name of the block to generate (same as the parameter given to this script)
-#      - package (contains the package where the code will be geneated)
-# Lines enclosed with ?{xxx and ?}xxx
-# are conditionally generated depending on input parameters
-
-TEMPLATE_BLOCK = '''
-package ${package};
+#################################################################################
+# Templates
+#################################################################################
+TEMPLATE_BLOCK_JAVA = '''
+package $[package];
 
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
@@ -65,13 +45,13 @@ import net.minecraftforge.fml.network.NetworkHooks;
 
 import javax.annotation.Nullable;
 
-public class ${name}Block extends Block {
+public class $[name]Block extends Block {
 
-    public ${name}Block() {
+    public $[name]Block() {
         super(Properties.create(Material.IRON));
     }
-
     ?{tile
+
     @Override
     public boolean hasTileEntity(BlockState state) {
         return true;
@@ -80,11 +60,11 @@ public class ${name}Block extends Block {
     @Nullable
     @Override
     public TileEntity createTileEntity(BlockState state, IBlockReader world) {
-        return new ${name}Tile();
+        return new $[name]Tile();
     }
     ?}tile
-
     ?{gui
+
     @Override
     public boolean onBlockActivated(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockRayTraceResult result) {
         if (!world.isRemote) {
@@ -97,7 +77,7 @@ public class ${name}Block extends Block {
                 @Nullable
                 @Override
                 public Container createMenu(int i, PlayerInventory playerInventory, PlayerEntity playerEntity) {
-                    return new ${name}Container(i, world, pos, playerInventory, playerEntity);
+                    return new $[name]Container(i, world, pos, playerInventory, playerEntity);
                 }
             }, pos);
             return true;
@@ -106,25 +86,22 @@ public class ${name}Block extends Block {
     }
     ?}gui
 }
-
 /*
 ====== Code to move to your objectholder class ======
 
-@ObjectHolder(${modid_ref}+":$L{name}")
-public static ${name}Block $U{name};
+@ObjectHolder($[modid_ref]+":$L[name]")
+public static $[name]Block $U[name];
 
 ====== Code to move to your registration event class ======
 
 @SubscribeEvent
 public static void onBlockRegister(final RegistryEvent.Register<Block> e) {
-    e.getRegistry().register(new ${name}Block().setRegistryName("$L{name}");
+    e.getRegistry().register(new $[name]Block().setRegistryName("$L[name]");
 }
-
 */
 '''
-
-TEMPLATE_TILE = '''
-package ${package};
+TEMPLATE_TILE_JAVA = '''
+package $[package];
 
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.tileentity.TileEntity;
@@ -139,17 +116,16 @@ import net.minecraftforge.items.ItemStackHandler;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-public class ${name}Tile extends TileEntity {
-
+public class $[name]Tile extends TileEntity {
     ?{gui
     private LazyOptional<IItemHandler> handler = LazyOptional.of(this::createHandler);
     ?}gui
 
-    public ${name}Tile() {
-        super($U{name}_TILE);
+    public $[name]Tile() {
+        super($U[name]_TILE);
     }
-
     ?{gui
+
     @Override
     public void read(CompoundNBT tag) {
         CompoundNBT invTag = tag.getCompound("inv");
@@ -166,7 +142,7 @@ public class ${name}Tile extends TileEntity {
     }
 
     private IItemHandler createHandler() {
-        return new ItemStackHandler(${name}Container.COUNT) {
+        return new ItemStackHandler($[name]Container.COUNT) {
 
             @Override
             protected void onContentsChanged(int slot) {
@@ -185,25 +161,22 @@ public class ${name}Tile extends TileEntity {
     }
     ?}gui
 }
-
 /*
 ====== Code to move to your objectholder class ======
 
-@ObjectHolder(${modid_ref}+":$L{name}")
-public static TileEntityType<${name}Tile> $U{name}_TILE;
+@ObjectHolder($[modid_ref]+":$L[name]")
+public static TileEntityType<$[name]Tile> $U[name]_TILE;
 
 ====== Code to move to your registration event class ======
 
 @SubscribeEvent
 public static void onTileRegister(final RegistryEvent.Register<TileEntityType<?>> e) {
-    e.getRegistry().register(TileEntityType.Builder.create(${name}Tile::new, $U{name}BLOCK).build(null).setRegistryName("$L{name}"));
+    e.getRegistry().register(TileEntityType.Builder.create($[name]Tile::new, $U[name]BLOCK).build(null).setRegistryName("$L{name}"));
 }
-
 */
 '''
-
-TEMPLATE_CONTAINER = '''
-package ${package};
+TEMPLATE_CONTAINER_JAVA = '''
+package $[package];
 
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
@@ -218,15 +191,14 @@ import net.minecraft.world.World;
 import net.minecraftforge.items.CapabilityItemHandler;
 import net.minecraftforge.items.SlotItemHandler;
 
-public class ${name}Container extends Container {
-
+public class $[name]Container extends Container {
     public static final int COUNT = 1;      // Change for a different number of slots in this container
 
     private TileEntity tileEntity;
     private PlayerEntity playerEntity;
 
-    public ${name}Container(int windowId, World world, BlockPos pos, PlayerInventory playerInventory, PlayerEntity player) {
-        super($U{name}_CONTAINER, windowId);
+    public $[name]Container(int windowId, World world, BlockPos pos, PlayerInventory playerInventory, PlayerEntity player) {
+        super($U[name]_CONTAINER, windowId);
         tileEntity = world.getTileEntity(pos);
         this.playerEntity = player;
 
@@ -267,16 +239,15 @@ public class ${name}Container extends Container {
 
     @Override
     public ItemStack transferStackInSlot(PlayerEntity playerIn, int index) {
-        // @todo provide a proper implementation here depending on what you need!
+        // TODO provide a proper implementation here depending on what you need!
         return ItemStack.EMPTY;
     }
 }
-
 /*
 ====== Code to move to your objectholder class ======
 
-@ObjectHolder(${modid_ref}+":$L{name}")
-public static ContainerType<${name}Container> $U{name}_CONTAINER;
+@ObjectHolder($[modid_ref]+":$L[name]")
+public static ContainerType<$[name]Container> $U[name]_CONTAINER;
 
 ====== Code to move to your registration event class ======
 
@@ -286,16 +257,13 @@ public static void onContainerRegister(final RegistryEvent.Register<ContainerTyp
         BlockPos pos = data.readBlockPos();
         World clientWorld = DistExecutor.runForDist(() -> () -> Minecraft.getInstance().world, () -> () -> null);
         PlayerEntity clientPlayer = DistExecutor.runForDist(() -> () -> Minecraft.getInstance().player, () -> () -> null);
-        return new ${name}Container(windowId, clientWorld, pos, inv, clientPlayer);
-    }).setRegistryName("$L{name}"));
+        return new $[name]Container(windowId, clientWorld, pos, inv, clientPlayer);
+    }).setRegistryName("$L[name]"));
 }
-
 */
-
 '''
-
-TEMPLATE_SCREEN = '''
-package ${package};
+TEMPLATE_SCREEN_JAVA = '''
+package $[package];
 
 import com.mojang.blaze3d.platform.GlStateManager;
 import net.minecraft.client.Minecraft;
@@ -304,11 +272,10 @@ import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.ITextComponent;
 
-public class ${name}Screen extends ContainerScreen<${name}Container> {
+public class $[name]Screen extends ContainerScreen<$[name]Container> {
+    private ResourceLocation GUI = new ResourceLocation($[modid_ref], "textures/gui/$L[name]_gui.png");  // Put your own gui image here
 
-    private ResourceLocation GUI = new ResourceLocation(${modid_ref}, "textures/gui/gui.png");  // Put your own gui image here
-
-    public ${name}Screen(${name}Container container, PlayerInventory inv, ITextComponent name) {
+    public $[name]Screen($[name]Container container, PlayerInventory inv, ITextComponent name) {
         super(container, inv, name);
     }
 
@@ -333,7 +300,6 @@ public class ${name}Screen extends ContainerScreen<${name}Container> {
         this.blit(relX, relY, 0, 0, this.xSize, this.ySize);
     }
 }
-
 /*
 ====== Code to move to your client initialization ======
 
@@ -341,30 +307,28 @@ public class ${name}Screen extends ContainerScreen<${name}Container> {
 
 */
 '''
-
 TEMPLATE_BLOCKSTATE_JSON = '''
 {
     "variants": {
-        "": { "model": "${modid}:block/$L{name}" }
+        "": {
+            "model": "$[modid]:block/$L[name]"
+        }
     }
 }
 '''
-
 TEMPLATE_BLOCKMODEL_JSON = '''
 {
     "parent": "block/cube_all",
     "textures": {
-        "all": "${modid}:block/$L{name}"
+        "all": "$[modid]:block/$L[name]"
     }
 }
 '''
-
 TEMPLATE_ITEMMODEL_JSON = '''
 {
-  "parent": "${modid}:block/$L{name}"
+    "parent": "$[modid]:block/$L[name]"
 }
 '''
-
 TEMPLATE_LOOTTABLE_JSON = '''
 {
   "type": "minecraft:block",
@@ -374,7 +338,7 @@ TEMPLATE_LOOTTABLE_JSON = '''
       "entries": [
         {
           "type": "minecraft:item",
-          "name": "${modid}:$L{name}"
+          "name": "$[modid]:$L[name]"
         }
       ],
       "conditions": [
@@ -386,29 +350,29 @@ TEMPLATE_LOOTTABLE_JSON = '''
   ]
 }
 '''
-
 TEMPLATE_RECIPE_JSON = '''
 {
-  "type": "minecraft:crafting_shaped",
-  "pattern": [
-    "ccc",
-    "ccc",
-    "ccc"
-  ],
-  "key": {
-    "c": {
-      "item": "minecraft:clay"
+    "type": "minecraft:crafting_shaped",
+    "pattern": [
+        "ccc",
+        "c#c",
+        "ccc"
+    ],
+    "key": {
+        "c": {
+            "item": "minecraft:clay"
+        },
+        "#": {
+            "tag": "forge:ingots/iron"
+        }
+    },
+    "result": {
+        "item": "$[modid]:$L[name]"
     }
-  },
-  "result": {
-    "item": "${modid}:$L{name}"
-  }
-}'''
-
-
+}
+'''
 #################################################################################
-
-def generate(template, inputs, conditionals):
+def generate(template: str, inputs: Dict[str, str], conditionals: Dict[str, bool] = {}) -> Dict[str, Any]:
     for cond_name, conditional in conditionals.items():
         lines = template.splitlines()
         gen = True
@@ -424,98 +388,72 @@ def generate(template, inputs, conditionals):
         template = '\n'.join(newlines)
 
     for inp, val in inputs.items():
-        template = template.replace('${' + inp + '}', val)
-        template = template.replace('$U{' + inp + '}', val.upper())
-        template = template.replace('$L{' + inp + '}', val.lower())
-
+        template = template.replace(f"$[{inp}]", val)
+        template = template.replace(f"$U[{inp}]", val.upper())
+        template = template.replace(f"$L[{inp}]", val.lower())
     return template.strip()
 
-
-def add_templated_java(package, name, suffix, force, conditionals, template):
+def add_templated_java(package: str, name: str, suffix: str, force: bool, template: str, conditionals: Dict[str, bool] = {}):
     path = SOURCE_ROOT
-    for p in package.split('.'):
-        path = os.path.join(path, p)
+    for folder in package.split('.'):
+        path = path.joinpath(folder)
+    path.mkdir(parents=True, exist_ok=True)
+    java_path = path.joinpath(f"{name}{suffix}.java")
 
-    os.makedirs(path, exist_ok=True)
-    java_name = f'{name}{suffix}.java'
-    path = os.path.join(path, java_name)
-
-    if (not force) and os.path.exists(path):
-        print(f'File {java_name!r} already exists. Not generated')
+    if (not force) and java_path.exists():
+        print(f"File `{java_path}` already exists. Not generated")
     else:
-        print(f'Generated {java_name!r}')
-        f = open(path, 'w')
+        print(f"Generated `{java_path}`")
+        with open(java_path, 'w') as outfile:
+            outfile.write(generate(template=template, inputs={
+                'package': f"{ROOT_PACKAGE}.{package}",
+                'modid_ref': MODID_REF,
+                'modid': MODID,
+                'name': name
+            }, conditionals=conditionals))
 
-        f.write(
-            generate(
-                template,
-                {
-                    'package': f'{ROOT_PACKAGE}.{package}',
-                    'modid_ref': MODID_REF,
-                    'modid': MODID,
-                    'name': name
-                },
-                conditionals
-            )
-        )
+def add_templated_json(path: Path, package: str, name: str, force: bool, template: str):
+    for folder in package.split('.'):
+        path = path.joinpath(folder)
+    path.mkdir(parents=True, exist_ok=True)
+    json_path = path.joinpath(f"{name.lower()}.json")
 
-        f.close()
-
-
-def add_templated_json(path, package, name, force, conditionals, template):
-    for p in package.split('.'):
-        path = os.path.join(path, p)
-    os.makedirs(path, exist_ok=True)
-    json_name = name.lower() + '.json'
-    path = os.path.join(path, json_name)
-
-    if (not force) and os.path.exists(path):
-        print(f'File {json_name!r} already exists. Not generated')
+    if (not force) and json_path.exists():
+        print(f"File `{json_path}` already exists. Not generated")
     else:
-        print(f'Generated {json_name!r}')
-        f = open(path, 'w')
+        print(f"Generated `{json_path}`")
+        with open(json_path, 'w') as outfile:
+            json.dump(json.loads(generate(template=template, inputs={
+                "modid": MODID,
+                "name": name
+            })), outfile, indent=2, sort_keys=True)
 
-        f.write(
-            generate(
-                template,
-                {
-                    'package': f"{ROOT_PACKAGE}.{package}",
-                    'modid_ref': MODID_REF,
-                    'modid': MODID,
-                    'name': name
-                },
-                conditionals
-            )
-        )
-
-        f.close()
-
-
-def add_block(name, force, gui, tile, no_json):
-    conditionals = {'gui': gui, 'tile': gui or tile}
-    add_templated_java(PACKAGE_BLOCKS, name, 'Block', force, conditionals, TEMPLATE_BLOCK)
-    if gui or tile:
-        add_templated_java(PACKAGE_TILES, name, 'Tile', force, conditionals, TEMPLATE_TILE)
+def add_block(name: str, force: bool, gui: bool, tile: bool, no_json: bool):
+    conditionals = {
+        'gui': gui,
+        'tile': tile
+    }
+    add_templated_java(package=PACKAGE_BLOCKS, name=name, suffix='Block', force=force, template=TEMPLATE_BLOCK_JAVA, conditionals=conditionals)
     if gui:
-        add_templated_java(PACKAGE_CONTAINERS, name, 'Container', force, conditionals, TEMPLATE_CONTAINER)
-        add_templated_java(PACKAGE_SCREENS, name, 'Screen', force, conditionals, TEMPLATE_SCREEN)
+        add_templated_java(package=PACKAGE_CONTAINERS, name=name, suffix='Container', force=force, template=TEMPLATE_CONTAINER_JAVA, conditionals=conditionals)
+        add_templated_java(package=PACKAGE_SCREENS, name=name, suffix='Screen', force=force, template=TEMPLATE_SCREEN_JAVA, conditionals=conditionals)
+    if tile:
+        add_templated_java(package=PACKAGE_TILES, name=name, suffix='Tile', force=force, template=TEMPLATE_TILE_JAVA, conditionals=conditionals)
     if not no_json:
-        add_templated_json(ASSET_RESOURCE_ROOT, 'blockstates', name, force, conditionals, TEMPLATE_BLOCKSTATE_JSON)
-        add_templated_json(ASSET_RESOURCE_ROOT, 'models.block', name, force, conditionals, TEMPLATE_BLOCKMODEL_JSON)
-        add_templated_json(ASSET_RESOURCE_ROOT, 'models.item', name, force, conditionals, TEMPLATE_ITEMMODEL_JSON)
-        add_templated_json(DATA_RESOURCE_ROOT, 'loot_tables.blocks', name, force, conditionals, TEMPLATE_LOOTTABLE_JSON)
-        add_templated_json(DATA_RESOURCE_ROOT, 'recipes', name, force, conditionals, TEMPLATE_RECIPE_JSON)
-
+        add_templated_json(path = ASSET_RESOURCE_ROOT, package='blockstates', name=name, force=force, template=TEMPLATE_BLOCKSTATE_JSON)
+        add_templated_json(path = ASSET_RESOURCE_ROOT, package='models.block', name=name, force=force, template=TEMPLATE_BLOCKMODEL_JSON)
+        add_templated_json(path=ASSET_RESOURCE_ROOT, package='models.item', name=name, force=force, template=TEMPLATE_ITEMMODEL_JSON)
+        add_templated_json(path=DATA_RESOURCE_ROOT, package='loot_tables.blocks', name=name, force=force, template=TEMPLATE_LOOTTABLE_JSON)
+        add_templated_json(path=DATA_RESOURCE_ROOT, package='recipes', name=name, force=force, template=TEMPLATE_RECIPE_JSON)
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Make a block')
+    parser = ArgumentParser(description='Make a Block')
     parser.add_argument('name', help='CamelCase name of the block to add')
     parser.add_argument('--force', help='Overwrite files even if they exist (be careful!)', action='store_true')
     parser.add_argument('--tile', help='Generate additional code for a tileentity', action='store_true')
-    parser.add_argument('--gui', help='Generate additional code for container and gui (implies tile!)',
-                        action='store_true')
+    parser.add_argument('--gui', help='Generate additional code for container and gui (implies tile!)', action='store_true')
     parser.add_argument('--nojson', help='Prevent generating json', action='store_true')
     args = parser.parse_args()
 
     print(f'Adding block {args.name}')
-    add_block(args.name, args.force, args.gui, args.tile, args.nojson)
+    add_block(name=args.name, force=args.force, gui=args.gui, tile=args.gui or args.tile, no_json=args.nojson)
