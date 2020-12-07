@@ -63,16 +63,9 @@ public class $[name]Block extends Block {
     ?}gui
 }
 /*
-====== Code to move to your objectholder class ======
-
-@ObjectHolder($[modid_ref]+":$L[name]")
-public static $[name]Block $U[name];
-
 ====== Code to move to your registration event class ======
 
-@SubscribeEvent
-public static void onBlockRegister(final RegistryEvent.Register<Block> e) {
-    e.getRegistry().register(new $[name]Block().setRegistryName("$L[name]");
-}
+public static RegistryObject<$[name]Block> $U[name] = BLOCKS.register("$L[name]", $[name]Block::new);
+public static RegistryObject<BlockItem> $U[name]_BLOCKITEM = ITEMS.register("$L[name]", () -> new BlockItem($U[name].get(), new Properties()));
 */
 '''
