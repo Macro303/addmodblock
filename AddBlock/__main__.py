@@ -11,12 +11,17 @@ from AddBlock.templates import *
 #################################################################################
 config = ConfigParser()
 config.read('config.ini')
+
 MODID_REF = config['ModID']['ModID Ref']
 MODID = config['ModID']['ModID']
-ROOT_PACKAGE = config['Root Paths']['Package']
-SOURCE_ROOT = Path(config['Root Paths']['Source'])
-ASSET_RESOURCE_ROOT = Path(config['Root Paths']['Assets'])
-DATA_RESOURCE_ROOT = Path(config['Root Paths']['Data'])
+
+ROOT_PACKAGE = config['Packages']['Root Package']
+SOURCE_ROOT = Path('src/main/java')
+for folder in ROOT_PACKAGE.split('.'):
+    SOURCE_ROOT = SOURCE_ROOT.joinpath(folder)
+ASSET_RESOURCE_ROOT = Path('src/main/resources/assets').joinpath(MODID)
+DATA_RESOURCE_ROOT = Path('src/main/resources/data').joinpath(MODID)
+
 PACKAGE_BLOCKS = config['Packages']['Blocks']
 PACKAGE_TILES = config['Packages']['Tiles']
 PACKAGE_CONTAINERS = config['Packages']['Containers']
