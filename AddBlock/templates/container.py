@@ -20,7 +20,7 @@ public class $[name]Container extends Container {
     private TileEntity tileEntity;
     private PlayerEntity playerEntity;
 
-    public $[name]Container(int windowId, World world, BlockPos pos, PlayerInventory playerInventory, PlayerEntity player) {
+    public $[name]Container(int windowId, World world, BlockPos pos, PlayerInventory inv, PlayerEntity player) {
         super($U[name]_CONTAINER, windowId);
         tileEntity = world.getTileEntity(pos);
         this.playerEntity = player;
@@ -29,22 +29,22 @@ public class $[name]Container extends Container {
             // Add more slots here if needed
             addSlot(new SlotItemHandler(h, 0, 64, 24));
         });
-        layoutPlayerInventorySlots(playerInventory, 10, 70);
+        layoutPlayerInventorySlots(inv, 10, 70);
     }
 
     @Override
-    public boolean canInteractWith(PlayerEntity playerIn) {
-        return isWithinUsableDistance(IWorldPosCallable.of(tileEntity.getWorld(), tileEntity.getPos()), playerEntity, $U{name});
+    public boolean canInteractWith(PlayerEntity player) {
+        return isWithinUsableDistance(IWorldPosCallable.of(tileEntity.getWorld(), tileEntity.getPos()), playerEntity, $U[name].get());
     }
 
-    private void layoutPlayerInventorySlots(PlayerInventory playerInventory, int leftCol, int topRow) {
+    private void layoutPlayerInventorySlots(PlayerInventory inv, int leftCol, int topRow) {
         // Player inventory
         int index = 9;
         int y = topRow;
         for (int j = 0; j < 3; j++) {
             int x = leftCol;
             for (int i = 0; i < 9; i++) {
-                addSlot(new Slot(playerInventory, index++, x, y));
+                addSlot(new Slot(inv, index++, x, y));
                 x += 18;
             }
             y += 18;
@@ -55,13 +55,13 @@ public class $[name]Container extends Container {
         index = 0;
         int x = leftCol;
         for (int i = 0; i < 9; i++) {
-            addSlot(new Slot(playerInventory, index++, x, topRow));
+            addSlot(new Slot(inv, index++, x, topRow));
             x += 18;
         }
     }
 
     @Override
-    public ItemStack transferStackInSlot(PlayerEntity playerIn, int index) {
+    public ItemStack transferStackInSlot(PlayerEntity player, int index) {
         // TODO provide a proper implementation here depending on what you need!
         return ItemStack.EMPTY;
     }
