@@ -28,14 +28,14 @@ This script also supports generating Java for:
 
 ## Arguments
 
-| Argument | Example | Required | Description |
-| --------- | ------- | -------- | ----------- |
-| `name` | `python -m AddBlock ExampleBlock` | True | |
-| `--tile` | `python -m AddBlock ExampleBlock --tile` | False | Generate additional code for a tileentity |
-| `--gui` | `python -m AddBlock ExampleBlock --gui` | False | Generate additional code for container and gui (implies tile!) |
-| `--nojson` | `python -m AddBlock ExampleBlock --nojson` | False | Prevent generating Json files |
-| `--nojava` | `python -m AddBlock ExampleBlock --nojava` | False | Prevent generating Java files |
-| `--force` | `python -m AddBlock ExampleBlock --force` | False | Overwrite files even if they exist (be careful!) |
+| Argument | Required | Description |
+| -------- | -------- | ----------- |
+| `name` | True | |
+| `--tile` | False | Generate additional code for a tileentity |
+| `--gui` | False | Generate additional code for container and gui (implies tile!) |
+| `--nojson` | False | Prevent generating Json files |
+| `--nojava` | False | Prevent generating Java files |
+| `--force` | False | Overwrite files even if they exist (be careful!) |
 
 ## Notes
 By default this script should never overwrite a file but if it does, so I'm not responsible (although I will be sorry). Make backups!
