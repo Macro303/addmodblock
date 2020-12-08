@@ -33,7 +33,8 @@ This script also supports generating Java for:
 | `name` | `python -m AddBlock ExampleBlock` | True | |
 | `--tile` | `python -m AddBlock ExampleBlock --tile` | False | Generate additional code for a tileentity |
 | `--gui` | `python -m AddBlock ExampleBlock --gui` | False | Generate additional code for container and gui (implies tile!) |
-| `--nojson` | `python -m AddBlock ExampleBlock --nojson` | False | Prevent generating json files |
+| `--nojson` | `python -m AddBlock ExampleBlock --nojson` | False | Prevent generating Json files |
+| `--nojava` | `python -m AddBlock ExampleBlock --nojava` | False | Prevent generating Java files |
 | `--force` | `python -m AddBlock ExampleBlock --force` | False | Overwrite files even if they exist (be careful!) |
 
 ## Notes

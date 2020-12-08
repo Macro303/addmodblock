@@ -83,17 +83,18 @@ def add_templated_json(path: Path, package: str, name: str, force: bool, templat
             })), outfile, indent=2, sort_keys=True)
 
 
-def add_block(name: str, force: bool, gui: bool, tile: bool, no_json: bool):
-    conditionals = {
-        'gui': gui,
-        'tile': tile
-    }
-    add_templated_java(package=PACKAGE_BLOCKS, name=name, suffix='Block', force=force, template=TEMPLATE_BLOCK, conditionals=conditionals)
-    if gui:
-        add_templated_java(package=PACKAGE_CONTAINERS, name=name, suffix='Container', force=force, template=TEMPLATE_CONTAINER, conditionals=conditionals)
-        add_templated_java(package=PACKAGE_SCREENS, name=name, suffix='Screen', force=force, template=TEMPLATE_SCREEN, conditionals=conditionals)
-    if tile:
-        add_templated_java(package=PACKAGE_TILES, name=name, suffix='Tile', force=force, template=TEMPLATE_TILE, conditionals=conditionals)
+def add_block(name: str, force: bool, gui: bool, tile: bool, no_json: bool, no_java: bool):
+    if not no_java:
+        conditionals = {
+            'gui': gui,
+            'tile': tile
+        }
+        add_templated_java(package=PACKAGE_BLOCKS, name=name, suffix='Block', force=force, template=TEMPLATE_BLOCK, conditionals=conditionals)
+        if gui:
+            add_templated_java(package=PACKAGE_CONTAINERS, name=name, suffix='Container', force=force, template=TEMPLATE_CONTAINER, conditionals=conditionals)
+            add_templated_java(package=PACKAGE_SCREENS, name=name, suffix='Screen', force=force, template=TEMPLATE_SCREEN, conditionals=conditionals)
+        if tile:
+            add_templated_java(package=PACKAGE_TILES, name=name, suffix='Tile', force=force, template=TEMPLATE_TILE, conditionals=conditionals)
     if not no_json:
         add_templated_json(path=ASSET_RESOURCE_ROOT, package='blockstates', name=name, force=force, template=TEMPLATE_BLOCKSTATE)
         add_templated_json(path=ASSET_RESOURCE_ROOT, package='models.block', name=name, force=force, template=TEMPLATE_BLOCK_MODEL)
@@ -108,8 +109,9 @@ if __name__ == '__main__':
     parser.add_argument('--force', help='Overwrite files even if they exist (be careful!)', action='store_true')
     parser.add_argument('--tile', help='Generate additional code for a tileentity', action='store_true')
     parser.add_argument('--gui', help='Generate additional code for container and gui (implies tile!)', action='store_true')
-    parser.add_argument('--nojson', help='Prevent generating json', action='store_true')
+    parser.add_argument('--nojson', help='Prevent generating Json files', action='store_true')
+    parser.add_argument('--nojava', help='Prevent generating Java files', action='store_true')
     args = parser.parse_args()
 
     print(f'Adding block {args.name}')
-    add_block(name=args.name, force=args.force, gui=args.gui, tile=args.gui or args.tile, no_json=args.nojson)
+    add_block(name=args.name, force=args.force, gui=args.gui, tile=args.gui or args.tile, no_json=args.nojson, no_java=args.nojava)
